@@ -3,6 +3,7 @@ package net.sharksystem.creditmoney;
 import net.sharksystem.SharkException;
 import net.sharksystem.SharkUnknownBehaviourException;
 import net.sharksystem.asap.*;
+import net.sharksystem.asap.crypto.ASAPKeyStore;
 import net.sharksystem.pki.SharkPKIComponent;
 import net.sharksystem.utils.Log;
 
@@ -30,14 +31,14 @@ public class SharkCreditMoneyComponentImpl extends SharkBondReceivedListenerMana
         this.asapPeer.addASAPMessageReceivedListener(SharkCreditMoneyComponent.SHARK_CREDIT_MONEY_FORMAT, this);
     }
 
-    @Override
-    public void setBehaviour(String behaviour, boolean on) throws SharkUnknownBehaviourException {
+    //@Override
+    public void setBehaviour(String behaviour, boolean on) throws SharkCreditMoneyException {
         /* no component specific behaviour here. */
         switch (behaviour) {
             case SharkCreditMoneyComponent.BEHAVIOUR_SHARK_MONEY_ALLOW_TRANSFER:
                 this.allowTransfer = on; break;
 
-            default: throw new SharkUnknownBehaviourException(behaviour);
+            default: throw new SharkCreditMoneyException(behaviour);
         }
     }
 
@@ -48,7 +49,7 @@ public class SharkCreditMoneyComponentImpl extends SharkBondReceivedListenerMana
         this.addSharkBondReceivedListener(listener);
     }
 
-    @Override
+    //@Override
     public void asapMessagesReceived(ASAPMessages asapMessages) throws IOException {
         try {
             CharSequence uri = asapMessages.getURI();
@@ -64,11 +65,11 @@ public class SharkCreditMoneyComponentImpl extends SharkBondReceivedListenerMana
         InMemoSharkBond creditBond = new InMemoSharkBond(creditorID, debtorID, unit, amount, allowTransfer);
         Set<CharSequence> receiver = new HashSet<>();
         if (asCreditor) {
-            SharkBondHelper.signAsCreditor(this.certificateComponent, creditBond, false);
+            SharkBondHelper.signAsCreditor( this.certificateComponent.getASAPKeyStore(), creditBond, false);
             receiver.add(creditBond.getDebtorID());
             this.sendBond(creditBond, creditorID, receiver, true, true, SHARK_CREDIT_MONEY_ASKED_TO_SIGN_AS_DEBTOR_URI);
         } else {
-            SharkBondHelper.signAsDebtor(this.certificateComponent, creditBond, false);
+            SharkBondHelper.signAsDebtor(this.certificateComponent.getASAPKeyStore(), creditBond, false);
             receiver.add(creditBond.getCreditorID());
             this.sendBond(creditBond, debtorID, receiver, true, true, SHARK_CREDIT_MONEY_ASKED_TO_SIGN_AS_CREDITOR_URI);
         }
@@ -84,11 +85,11 @@ public class SharkCreditMoneyComponentImpl extends SharkBondReceivedListenerMana
     public void transferBond(SharkBond bond, boolean asCreditor) throws SharkCreditMoneyException, IOException, ASAPException {
         Set<CharSequence> receiver = new HashSet<>();
         if (asCreditor) {
-            SharkBondHelper.signAsCreditor(this.certificateComponent, bond, false);
+            SharkBondHelper.signAsCreditor( this.certificateComponent.getASAPKeyStore(), bond, false);
             receiver.add(bond.getDebtorID());
             this.sendBond(bond, bond.getCreditorID(), receiver, true, true, SHARK_CREDIT_MONEY_ASKED_TO_ACCEPT_TRANSFER_CREDITOR_URI);
         } else {
-            SharkBondHelper.signAsDebtor(this.certificateComponent, bond, false);
+            SharkBondHelper.signAsDebtor(this.certificateComponent.getASAPKeyStore(), bond, false);
             receiver.add(bond.getCreditorID());
             this.sendBond(bond, bond.getDebtorID(), receiver, true, true, SHARK_CREDIT_MONEY_ASKED_TO_ACCEPT_TRANSFER_DEBTOR_URI);
         }
@@ -96,7 +97,7 @@ public class SharkCreditMoneyComponentImpl extends SharkBondReceivedListenerMana
 
     @Override
     public void sendBond(SharkBond bond, CharSequence sender, Set<CharSequence> receiver, boolean sign, boolean encrypt, CharSequence uri) throws IOException, ASAPException, SharkCreditMoneyException {
-        byte[] serializedBond = SharkBondSerializer.serializeCreditBond(bond, sender, receiver, sign, encrypt, this.certificateComponent, false);
+        byte[] serializedBond = SharkBondSerializer.serializeCreditBond(bond, sender, receiver, sign, encrypt,  this.certificateComponent.getASAPKeyStore(), false);
         this.sharkBondStorage.addOrUpdateSharkBond(bond);
         this.asapPeer.sendASAPMessage(SharkCreditMoneyComponent.SHARK_CREDIT_MONEY_FORMAT, uri, serializedBond);
     }
@@ -133,5 +134,10 @@ public class SharkCreditMoneyComponentImpl extends SharkBondReceivedListenerMana
     @Override
     public ASAPStorage getASAPStorage() throws IOException, ASAPException {
         return this.asapPeer.getASAPStorage(SharkCreditMoneyComponent.SHARK_CREDIT_MONEY_FORMAT);
+    }
+
+    @Override
+    public void asapMessagesReceived(ASAPMessages asapMessages, String s, List<ASAPHop> list) throws IOException {
+        //TODO
     }
 }

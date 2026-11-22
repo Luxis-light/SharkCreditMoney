@@ -2,6 +2,8 @@ package net.sharksystem.creditmoney;
 
 import net.sharksystem.SharkComponent;
 import net.sharksystem.SharkComponentFactory;
+import net.sharksystem.SharkException;
+import net.sharksystem.SharkPeer;
 import net.sharksystem.contactinformation.SharkContactInformationComponent;
 import net.sharksystem.pki.SharkPKIComponent;
 
@@ -18,8 +20,14 @@ public class SharkCreditMoneyComponentFactory implements SharkComponentFactory {
         this(pkiComponent, null);
     }
 
+//    @Override
+//public SharkComponent getComponent() {
+ //       return new SharkCreditMoneyComponentImpl(pkiComponent);
+ //   }
+
     @Override
-    public SharkComponent getComponent() {
-        return new SharkCreditMoneyComponentImpl(pkiComponent);
+    public SharkComponent getComponent(SharkPeer sharkPeer) throws SharkException {
+        //TODO
+        return null;
     }
 }

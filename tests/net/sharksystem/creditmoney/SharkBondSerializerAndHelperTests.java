@@ -7,6 +7,7 @@ import net.sharksystem.asap.pki.CredentialMessageInMemo;
 import net.sharksystem.pki.SharkPKIComponent;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -36,9 +37,9 @@ public class SharkBondSerializerAndHelperTests {
         TestHelper.setupComponent(this.bobPeer);
 
         // Start alice peer
-        this.alicePeer.start();
+        this.alicePeer.getASAPTestPeerFS();
         // Start bob peer
-        this.bobPeer.start();
+        this.bobPeer.getASAPTestPeerFS();
 
         // add some keys as described in scenario settings
         SharkPKIComponent alicePKI = (SharkPKIComponent) this.alicePeer.getComponent(SharkPKIComponent.class);
@@ -65,20 +66,20 @@ public class SharkBondSerializerAndHelperTests {
         byte[] byteArray1 = SharkBondSerializer.sharkBondToByteArray(sharkBond);
         byte[] byteArray2 = SharkBondSerializer.sharkBondToByteArray(sharkBond);
 
-        Assert.assertArrayEquals(byteArray1, byteArray2);
+        Assertions.assertArrayEquals(byteArray1, byteArray2);
 
         // Byte array to bond
         SharkBond convertedSharkBond1 = SharkBondSerializer.byteArrayToSharkBond(byteArray1);
         SharkBond convertedSharkBond2 = SharkBondSerializer.byteArrayToSharkBond(byteArray2);
 
-        Assert.assertNotNull(convertedSharkBond1);
-        Assert.assertNotNull(convertedSharkBond2);
-        Assert.assertEquals(convertedSharkBond1.getBondID(), convertedSharkBond2.getBondID());
-        Assert.assertEquals(convertedSharkBond1.getAmount(), convertedSharkBond2.getAmount());
-        Assert.assertEquals(convertedSharkBond1.getCreditorID(), convertedSharkBond2.getCreditorID());
-        Assert.assertEquals(convertedSharkBond1.getDebtorID(), convertedSharkBond2.getDebtorID());
-        Assert.assertEquals(convertedSharkBond1.unitDescription(), convertedSharkBond2.unitDescription());
-        Assert.assertEquals(convertedSharkBond1.getExpirationDate(), convertedSharkBond2.getExpirationDate());
+        Assertions.assertNotNull(convertedSharkBond2);
+        Assertions.assertNotNull(convertedSharkBond1);
+        Assertions.assertEquals(convertedSharkBond1.getBondID(), convertedSharkBond2.getBondID());
+        Assertions.assertEquals(convertedSharkBond1.getAmount(), convertedSharkBond2.getAmount());
+        Assertions.assertEquals(convertedSharkBond1.getCreditorID(), convertedSharkBond2.getCreditorID());
+        Assertions.assertEquals(convertedSharkBond1.getDebtorID(), convertedSharkBond2.getDebtorID());
+        Assertions.assertEquals(convertedSharkBond1.unitDescription(), convertedSharkBond2.unitDescription());
+        Assertions.assertEquals(convertedSharkBond1.getExpirationDate(), convertedSharkBond2.getExpirationDate());
     }
 
     @Test
@@ -87,18 +88,18 @@ public class SharkBondSerializerAndHelperTests {
         SharkBond sharkBond = new InMemoSharkBond(ALICE_ID, BOB_ID, BOND_UNIT, BOND_AMOUNT, false);
 
         // Sign the bond as creditor
-        SharkBondHelper.signAsCreditor(alicePKI, sharkBond, false);
+        SharkBondHelper.signAsCreditor(alicePKI.getASAPKeyStore(), sharkBond, false);
 
         // Verify creditor signature
         Assert.assertNotNull(sharkBond.getCreditorSignature());
-        Assert.assertTrue(SharkBondHelper.isSignedAsCreditor(sharkBond, alicePKI));
+        Assert.assertTrue(SharkBondHelper.isSignedAsCreditor(sharkBond, alicePKI.getASAPKeyStore()));
 
         // Sign the bond as debtor
-        SharkBondHelper.signAsDebtor(bobPKI, sharkBond, false);
+        SharkBondHelper.signAsDebtor(bobPKI.getASAPKeyStore(), sharkBond, false);
 
         // Verify debtor signature
         Assert.assertNotNull(sharkBond.getDebtorSignature());
-        Assert.assertTrue(SharkBondHelper.isSignedAsDebtor(sharkBond, bobPKI));
+        Assert.assertTrue(SharkBondHelper.isSignedAsDebtor(sharkBond, bobPKI.getASAPKeyStore()));
     }
 
     @Test
@@ -112,14 +113,14 @@ public class SharkBondSerializerAndHelperTests {
         Assert.assertFalse(sharkBond.isAnnulled());
 
         // Annul bond as creditor
-        SharkBondHelper.annulBond(alicePKI, sharkBond);
+        SharkBondHelper.annulBond(alicePKI.getASAPKeyStore(), sharkBond);
 
         // The bond was annulled by creditor, but is still not completely annulled
         Assert.assertTrue(sharkBond.getBondIsAnnulledByCreditor());
         Assert.assertFalse(sharkBond.isAnnulled());
 
         // Now let us annul the bond as debtor
-        SharkBondHelper.annulBond(bobPKI, sharkBond);
+        SharkBondHelper.annulBond(bobPKI.getASAPKeyStore(), sharkBond);
 
         // Now the bond is fully annulled
         Assert.assertTrue(sharkBond.getBondIsAnnulledByCreditor());
@@ -142,12 +143,12 @@ public class SharkBondSerializerAndHelperTests {
         Assert.assertEquals(sharkBond.unitDescription(), BOND_UNIT);
 
         // Serialize bond as plaintext
-        byte[] sharkBondBytes = SharkBondSerializer.serializeCreditBond(sharkBond, sharkBond.getCreditorID(), receiver, false, false, alicePKI, false, 0);
+        byte[] sharkBondBytes = SharkBondSerializer.serializeCreditBond(sharkBond, sharkBond.getCreditorID(), receiver, false, false, alicePKI.getASAPKeyStore(), false, 0);
 
         Assert.assertNotNull(sharkBondBytes);
 
         // Deserialize bondBytes
-        SharkBond deserializedSharkBond = SharkBondSerializer.deserializeCreditBond(sharkBondBytes, bobPKI);
+        SharkBond deserializedSharkBond = SharkBondSerializer.deserializeCreditBond(sharkBondBytes, bobPKI.getASAPKeyStore());
 
         // Check deserialized bond data
         Assert.assertNotNull(deserializedSharkBond);
@@ -175,12 +176,12 @@ public class SharkBondSerializerAndHelperTests {
         Assert.assertEquals(sharkBond.unitDescription(), BOND_UNIT);
 
         // Serialize bond as signed bond
-        byte[] sharkBondBytes = SharkBondSerializer.serializeCreditBond(sharkBond, sharkBond.getCreditorID(), receiver, true, false, alicePKI, false, 0);
+        byte[] sharkBondBytes = SharkBondSerializer.serializeCreditBond(sharkBond, sharkBond.getCreditorID(), receiver, true, false, alicePKI.getASAPKeyStore(), false, 0);
 
         Assert.assertNotNull(sharkBondBytes);
 
         // Deserialize bondBytes
-        SharkBond deserializedSharkBond = SharkBondSerializer.deserializeCreditBond(sharkBondBytes, bobPKI);
+        SharkBond deserializedSharkBond = SharkBondSerializer.deserializeCreditBond(sharkBondBytes, bobPKI.getASAPKeyStore());
 
         // Check deserialized bond data
         Assert.assertNotNull(deserializedSharkBond);
@@ -208,12 +209,12 @@ public class SharkBondSerializerAndHelperTests {
         Assert.assertEquals(sharkBond.unitDescription(), BOND_UNIT);
 
         // Serialize bond as signed bond
-        byte[] sharkBondBytes = SharkBondSerializer.serializeCreditBond(sharkBond, sharkBond.getCreditorID(), receiver, false, true, alicePKI, false, 0);
+        byte[] sharkBondBytes = SharkBondSerializer.serializeCreditBond(sharkBond, sharkBond.getCreditorID(), receiver, false, true, alicePKI.getASAPKeyStore(), false, 0);
 
         Assert.assertNotNull(sharkBondBytes);
 
         // Deserialize bondBytes
-        SharkBond deserializedSharkBond = SharkBondSerializer.deserializeCreditBond(sharkBondBytes, bobPKI);
+        SharkBond deserializedSharkBond = SharkBondSerializer.deserializeCreditBond(sharkBondBytes, bobPKI.getASAPKeyStore());
 
         // Check deserialized bond data
         Assert.assertNotNull(deserializedSharkBond);
@@ -241,12 +242,12 @@ public class SharkBondSerializerAndHelperTests {
         Assert.assertEquals(sharkBond.unitDescription(), BOND_UNIT);
 
         // Serialize bond as signed bond
-        byte[] sharkBondBytes = SharkBondSerializer.serializeCreditBond(sharkBond, sharkBond.getCreditorID(), receiver, true, true, alicePKI, false, 0);
+        byte[] sharkBondBytes = SharkBondSerializer.serializeCreditBond(sharkBond, sharkBond.getCreditorID(), receiver, true, true, alicePKI.getASAPKeyStore(), false, 0);
 
         Assert.assertNotNull(sharkBondBytes);
 
         // Deserialize bondBytes
-        SharkBond deserializedSharkBond = SharkBondSerializer.deserializeCreditBond(sharkBondBytes, bobPKI);
+        SharkBond deserializedSharkBond = SharkBondSerializer.deserializeCreditBond(sharkBondBytes, bobPKI.getASAPKeyStore());
 
         // Check deserialized bond data
         Assert.assertNotNull(deserializedSharkBond);
