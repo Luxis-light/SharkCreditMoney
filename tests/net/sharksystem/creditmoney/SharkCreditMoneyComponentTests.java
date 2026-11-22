@@ -3,6 +3,7 @@ package net.sharksystem.creditmoney;
 import net.sharksystem.*;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPSecurityException;
+import net.sharksystem.asap.crypto.ASAPKeyStore;
 import net.sharksystem.asap.pki.CredentialMessageInMemo;
 import net.sharksystem.pki.SharkPKIComponent;
 import org.junit.Assert;
@@ -46,13 +47,15 @@ public class SharkCreditMoneyComponentTests {
         TestHelper.setupComponent(this.bobPeer);
 
         // Start alice peer
-        this.alicePeer.start();
+        this.alicePeer.start(ALICE_ID);
         // Start bob peer
-        this.bobPeer.start();
+        this.bobPeer.start(BOB_ID);
 
         // add some keys as described in scenario settings
         SharkPKIComponent alicePKI = (SharkPKIComponent) this.alicePeer.getComponent(SharkPKIComponent.class);
         SharkPKIComponent bobPKI = (SharkPKIComponent) this.bobPeer.getComponent(SharkPKIComponent.class);
+        ASAPKeyStore aliceKeyStore =
+                ((SharkPKIComponent) this.alicePeer.getComponent(SharkPKIComponent.class)).getASAPKeyStore();
 
         // let Bob accept ALice credentials and create a certificate
         CredentialMessageInMemo aliceCredentialMessage = new CredentialMessageInMemo(ALICE_ID, ALICE_NAME, System.currentTimeMillis(), alicePKI.getPublicKey());
@@ -94,11 +97,11 @@ public class SharkCreditMoneyComponentTests {
         TestHelper.setupComponent(this.claraPeer);
 
         // Start alice peer
-        this.alicePeer.start();
+        this.alicePeer.start(ALICE_ID);
         // Start bob peer
-        this.bobPeer.start();
+        this.bobPeer.start(ALICE_ID);
         // Start clara peer
-        this.claraPeer.start();
+        this.claraPeer.start(ALICE_ID);
 
         // add some keys as described in scenario settings
         SharkPKIComponent alicePKI = (SharkPKIComponent) this.alicePeer.getComponent(SharkPKIComponent.class);
@@ -201,6 +204,10 @@ public class SharkCreditMoneyComponentTests {
     public void aliceTestCreatesBondAsCreditor() throws SharkException, ASAPException, IOException, InterruptedException {
         // Setup Scenario
         this.setUpAliceBobExchangeScenario();
+        ASAPKeyStore aliceKeyStore =
+                ((SharkPKIComponent) this.alicePeer.getComponent(SharkPKIComponent.class)).getASAPKeyStore();
+        ASAPKeyStore bobKeyStore =
+                ((SharkPKIComponent) this.bobPeer.getComponent(SharkPKIComponent.class)).getASAPKeyStore();
 
         ////////////////////////////////// bond specific tests start here
         // Create a bond: Creditor Alice, debtor Bob of 100 "Euro"
@@ -227,7 +234,7 @@ public class SharkCreditMoneyComponentTests {
         Assert.assertEquals(bondFromAlice.unitDescription(), BOND_UNIT);
 
         // Verify creditor signature
-        Assert.assertTrue(SharkBondHelper.isSignedAsCreditor(bondFromAlice, (SharkPKIComponent) this.bobPeer.getComponent(SharkPKIComponent.class)));
+        Assert.assertTrue(SharkBondHelper.isSignedAsCreditor(bondFromAlice, bobKeyStore));
 
         // After receiving creditBond from Alice, Bob signs it as debtor and send it back to Alice
         // test results
@@ -246,8 +253,7 @@ public class SharkCreditMoneyComponentTests {
         Assert.assertEquals(bondFromBob.unitDescription(), BOND_UNIT);
 
         // Verify debtor signature
-        Assert.assertTrue(SharkBondHelper.isSignedAsDebtor(bondFromBob, (SharkPKIComponent) this.alicePeer.getComponent(SharkPKIComponent.class)));
-
+        Assert.assertTrue(SharkBondHelper.isSignedAsDebtor(bondFromBob, aliceKeyStore));
         // Stop alice peer
         this.alicePeer.stop();
         // Stop bob peer
@@ -261,6 +267,10 @@ public class SharkCreditMoneyComponentTests {
     public void bobTestCreatesBondAsDebtor() throws ASAPException, SharkException, IOException, InterruptedException {
         // Setup Scenario
         this.setUpAliceBobExchangeScenario();
+        ASAPKeyStore aliceKeyStore =
+                ((SharkPKIComponent) this.alicePeer.getComponent(SharkPKIComponent.class)).getASAPKeyStore();
+        ASAPKeyStore bobKeyStore =
+                ((SharkPKIComponent) this.bobPeer.getComponent(SharkPKIComponent.class)).getASAPKeyStore();
 
         ////////////////////////////////// bond specific tests start here
         // Create a bond: Creditor Alice, debtor Bob of 100 "Euro"
@@ -287,7 +297,7 @@ public class SharkCreditMoneyComponentTests {
         Assert.assertEquals(bondFromBob.unitDescription(), BOND_UNIT);
 
         // Verify creditor signature
-        Assert.assertTrue(SharkBondHelper.isSignedAsDebtor(bondFromBob, (SharkPKIComponent) this.alicePeer.getComponent(SharkPKIComponent.class)));
+        Assert.assertTrue(SharkBondHelper.isSignedAsDebtor(bondFromBob, aliceKeyStore));
 
         // After receiving creditBond from Alice, Bob signs it as debtor and send it back to Alice
         // test results
@@ -306,7 +316,7 @@ public class SharkCreditMoneyComponentTests {
         Assert.assertEquals(bondFromAlice.unitDescription(), BOND_UNIT);
 
         // Verify debtor signature
-        Assert.assertTrue(SharkBondHelper.isSignedAsCreditor(bondFromAlice, (SharkPKIComponent) this.bobPeer.getComponent(SharkPKIComponent.class)));
+        Assert.assertTrue(SharkBondHelper.isSignedAsCreditor(bondFromAlice, bobKeyStore));
 
         // Stop alice peer
         this.alicePeer.stop();
@@ -321,6 +331,12 @@ public class SharkCreditMoneyComponentTests {
     public void aliceWantBondCreditorTestTransferToClara() throws ASAPException, SharkException, IOException, InterruptedException {
         // Setup Scenario
         this.setUpAliceBobClaraExchangeScenario();
+        ASAPKeyStore aliceKeyStore =
+                ((SharkPKIComponent) this.alicePeer.getComponent(SharkPKIComponent.class)).getASAPKeyStore();
+        ASAPKeyStore bobKeyStore =
+                ((SharkPKIComponent) this.bobPeer.getComponent(SharkPKIComponent.class)).getASAPKeyStore();
+        ASAPKeyStore claraKeyStore =
+                ((SharkPKIComponent) this.claraPeer.getComponent(SharkPKIComponent.class)).getASAPKeyStore();
 
         // Create a bond: Creditor Alice, debtor Bob of 100 "Euro"
         this.aliceComponent.createBond(ALICE_ID, BOB_ID, BOND_UNIT, BOND_AMOUNT, true);
@@ -359,7 +375,7 @@ public class SharkCreditMoneyComponentTests {
         Assert.assertEquals(bobBond.getDebtorID(), BOB_ID);
 
         // Verify debtor signature
-        Assert.assertTrue(SharkBondHelper.isSignedAsDebtor(bobBond, (SharkPKIComponent) this.bobPeer.getComponent(SharkPKIComponent.class)));
+        Assert.assertTrue(SharkBondHelper.isSignedAsDebtor(bobBond,bobKeyStore));
 
         // The transfer of the bond should now be fulfill
         // Check if bob and clara have the correct bond
@@ -379,7 +395,7 @@ public class SharkCreditMoneyComponentTests {
         Assert.assertEquals(claraBond.getDebtorID(), aliceBond.getDebtorID());
 
         // Verify creditor signature
-        Assert.assertTrue(SharkBondHelper.isSignedAsCreditor(claraBond, (SharkPKIComponent) this.claraPeer.getComponent(SharkPKIComponent.class)));
+        Assert.assertTrue(SharkBondHelper.isSignedAsCreditor(claraBond, claraKeyStore));
     }
 
     /**
@@ -389,6 +405,12 @@ public class SharkCreditMoneyComponentTests {
     public void bobWantBondDebtorTestTransferToClara() throws SharkException, IOException, ASAPException, InterruptedException {
         // Setup Scenario
         this.setUpAliceBobClaraExchangeScenario();
+        ASAPKeyStore aliceKeyStore =
+                ((SharkPKIComponent) this.alicePeer.getComponent(SharkPKIComponent.class)).getASAPKeyStore();
+        ASAPKeyStore bobKeyStore =
+                ((SharkPKIComponent) this.bobPeer.getComponent(SharkPKIComponent.class)).getASAPKeyStore();
+        ASAPKeyStore claraKeyStore =
+                ((SharkPKIComponent) this.claraPeer.getComponent(SharkPKIComponent.class)).getASAPKeyStore();
 
         // Create a bond: Creditor Alice, debtor Bob of 100 "Euro"
         this.aliceComponent.createBond(ALICE_ID, BOB_ID, BOND_UNIT, BOND_AMOUNT, true);
@@ -427,7 +449,7 @@ public class SharkCreditMoneyComponentTests {
         Assert.assertEquals(aliceBond.getDebtorID(), CLARA_ID);
 
         // Verify creditor signature
-        Assert.assertTrue(SharkBondHelper.isSignedAsCreditor(aliceBond, (SharkPKIComponent) this.alicePeer.getComponent(SharkPKIComponent.class)));
+        Assert.assertTrue(SharkBondHelper.isSignedAsCreditor(aliceBond, claraKeyStore));
 
         // The transfer of the bond should now be fulfill
         // Check if bob and clara have the correct bond
@@ -447,7 +469,7 @@ public class SharkCreditMoneyComponentTests {
         Assert.assertEquals(claraBond.getDebtorID(), CLARA_ID);
 
         // Verify debtor signature
-        Assert.assertTrue(SharkBondHelper.isSignedAsDebtor(claraBond, (SharkPKIComponent) this.claraPeer.getComponent(SharkPKIComponent.class)));
+        Assert.assertTrue(SharkBondHelper.isSignedAsDebtor(claraBond, claraKeyStore));
 
     }
 }

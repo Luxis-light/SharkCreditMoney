@@ -37,9 +37,9 @@ public class SharkBondSerializerAndHelperTests {
         TestHelper.setupComponent(this.bobPeer);
 
         // Start alice peer
-        this.alicePeer.getASAPTestPeerFS();
+    this.alicePeer.start(ALICE_ID);
         // Start bob peer
-        this.bobPeer.getASAPTestPeerFS();
+        this.bobPeer.start(BOB_ID);
 
         // add some keys as described in scenario settings
         SharkPKIComponent alicePKI = (SharkPKIComponent) this.alicePeer.getComponent(SharkPKIComponent.class);
