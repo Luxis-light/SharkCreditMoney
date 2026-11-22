@@ -137,7 +137,8 @@ public class SharkCreditMoneyComponentImpl extends SharkBondReceivedListenerMana
     }
 
     @Override
-    public void asapMessagesReceived(ASAPMessages asapMessages, String s, List<ASAPHop> list) throws IOException {
-        //TODO
+    public void asapMessagesReceived(ASAPMessages asapMessages, String senderE2E, List<ASAPHop> asapHops)
+            throws IOException {
+        this.asapMessagesReceived(asapMessages);
     }
 }

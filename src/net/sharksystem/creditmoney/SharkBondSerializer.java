@@ -112,8 +112,8 @@ class SharkBondSerializer {
                     encryptedMessagePackage = ASAPCryptoAlgorithms.parseEncryptedMessagePackage(bais);
 
             // for me?
-            if (!asapKeyStore.isOwner(encryptedMessagePackage.getRecipient())) {
-                throw new ASAPException("SharkBond Message: message not for me. Current user: " + asapKeyStore.getOwner() + ", recipient: " + encryptedMessagePackage.getRecipient());
+            if (!asapKeyStore.isOwner(encryptedMessagePackage.getReceiver())) {
+                throw new ASAPException("SharkBond Message: message not for me. Current user: " + asapKeyStore.getOwner() + ", recipient: " + encryptedMessagePackage.getReceiver());
             }
             // replace message with decrypted message
             tmpMessage = ASAPCryptoAlgorithms.decryptPackage(

@@ -27,7 +27,6 @@ public class SharkCreditMoneyComponentFactory implements SharkComponentFactory {
 
     @Override
     public SharkComponent getComponent(SharkPeer sharkPeer) throws SharkException {
-        //TODO
-        return null;
+        return new SharkCreditMoneyComponentImpl(this.pkiComponent);
     }
 }
