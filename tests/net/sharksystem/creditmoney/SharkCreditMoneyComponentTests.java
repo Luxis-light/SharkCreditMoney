@@ -99,9 +99,9 @@ public class SharkCreditMoneyComponentTests {
         // Start alice peer
         this.alicePeer.start(ALICE_ID);
         // Start bob peer
-        this.bobPeer.start(ALICE_ID);
+        this.bobPeer.start(BOB_ID);
         // Start clara peer
-        this.claraPeer.start(ALICE_ID);
+        this.claraPeer.start(CLARA_ID);
 
         // add some keys as described in scenario settings
         SharkPKIComponent alicePKI = (SharkPKIComponent) this.alicePeer.getComponent(SharkPKIComponent.class);
@@ -356,6 +356,7 @@ public class SharkCreditMoneyComponentTests {
         ///////////////////////////////// ASAP specific code - make an encounter Alice Bob
         this.runEncounter(this.alicePeer, this.bobPeer, true);
         this.runEncounter(this.alicePeer, this.claraPeer, true);
+        this.runEncounter(this.claraPeer, this.bobPeer, true);
 
         // The transfer of the bond should now be fulfill
         // Check if bob and clara have the correct bond

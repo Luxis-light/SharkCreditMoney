@@ -102,12 +102,17 @@ class DummySharkBondReceivedListener implements SharkBondsReceivedListener {
                 case SharkCreditMoneyComponent.SHARK_CREDIT_MONEY_SIGNED_TRANSFER_BOND_AS_CREDITOR_URI:
                     System.out.println("Step: 4, uri: " + SharkCreditMoneyComponent.SHARK_CREDIT_MONEY_SIGNED_TRANSFER_BOND_AS_CREDITOR_URI);
                     System.out.println("Current User: " + pkiStore.getASAPKeyStore().getOwner());
-                    SharkBondHelper.signTransferBondAsDebtor(pkiStore.getASAPKeyStore(), this.creditBond);
+                    // Bob checks: did the NEW creditor (Clara) sign this bond?
+                    if (!SharkBondHelper.isSignedAsCreditor(this.creditBond, pkiStore.getASAPKeyStore())) {
+                        throw new SharkCreditMoneyException("Transferred bond is not signed by the new creditor "
+                                + this.creditBond.getCreditorID() + " - rejected.");
+                    }
+                    // Bob signs as debtor of the transferred bond (normal signature, not a transfer signature)
+                    SharkBondHelper.signAsDebtor(pkiStore.getASAPKeyStore(), this.creditBond, false);
+                    // send completed bond to the new creditor - one receiver only, because it is encrypted
                     receiver = new HashSet<>();
                     receiver.add(this.creditBond.getCreditorID());
-                    receiver.add(this.creditBond.getTempCreditorID());
                     this.sharkCreditMoneyComponent.sendBond(this.creditBond, this.creditBond.getDebtorID(), receiver, true, true, SharkCreditMoneyComponent.SHARK_CREDIT_MONEY_SIGNED_BOND_URI);
-                    break;
                 case SharkCreditMoneyComponent.SHARK_CREDIT_MONEY_ANNUL_BOND_URI:
                     SharkBondHelper.annulBond(pkiStore.getASAPKeyStore(), this.creditBond);
                     receiver = new HashSet<>();
