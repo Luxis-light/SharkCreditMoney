@@ -187,7 +187,7 @@ class SharkBondHelper {
         Set<CharSequence> receiver = new HashSet<>();
         receiver.add(creditBond.getDebtorID());
         byte[] signature = creditBond.getCreditorSignature();
-        byte[] creditBondBytes = SharkBondSerializer.serializeCreditBond(creditBond, creditBond.getCreditorID(), receiver, true, true, asapKeyStore, true, 2);
+        byte[] creditBondBytes = SharkBondSerializer.serializeCreditBond(creditBond, signer, receiver, true, true, asapKeyStore, true, 2);
         return signature != null && isSignatureCorrect(creditBondBytes, signature, signer, asapKeyStore);
     }
 
@@ -200,7 +200,7 @@ class SharkBondHelper {
         Set<CharSequence> receiver = new HashSet<>();
         receiver.add(creditBond.getCreditorID());
         byte[] signature = creditBond.getDebtorSignature();
-        byte[] creditBondBytes = SharkBondSerializer.serializeCreditBond(creditBond, creditBond.getDebtorID(), receiver, true, true, asapKeyStore, true, 2);
+        byte[] creditBondBytes = SharkBondSerializer.serializeCreditBond(creditBond, signer, receiver, true, true, asapKeyStore, true, 2);
         return signature != null && isSignatureCorrect(creditBondBytes, signature, signer, asapKeyStore);
     }
 

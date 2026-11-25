@@ -113,7 +113,8 @@ class DummySharkBondReceivedListener implements SharkBondsReceivedListener {
                     receiver = new HashSet<>();
                     receiver.add(this.creditBond.getCreditorID());
                     this.sharkCreditMoneyComponent.sendBond(this.creditBond, this.creditBond.getDebtorID(), receiver, true, true, SharkCreditMoneyComponent.SHARK_CREDIT_MONEY_SIGNED_BOND_URI);
-                case SharkCreditMoneyComponent.SHARK_CREDIT_MONEY_ANNUL_BOND_URI:
+                    break;
+                    case SharkCreditMoneyComponent.SHARK_CREDIT_MONEY_ANNUL_BOND_URI:
                     SharkBondHelper.annulBond(pkiStore.getASAPKeyStore(), this.creditBond);
                     receiver = new HashSet<>();
                     if (pkiStore.getASAPKeyStore().getOwner().equals(this.creditBond.getCreditorID())) {
