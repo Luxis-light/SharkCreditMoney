@@ -185,7 +185,7 @@ public class SharkCreditMoneyComponentTests {
 
         leftPeer.getASAPTestPeerFS().startEncounter(this.getPortNumber(), rightPeer.getASAPTestPeerFS());
         // give them moment to exchange data
-        Thread.sleep(1000);
+        Thread.sleep(3000);
         //Thread.sleep(Long.MAX_VALUE);
         System.out.println("slept a moment");
 
@@ -193,6 +193,7 @@ public class SharkCreditMoneyComponentTests {
             System.out.println(">>>>>>>>>>>>>>>>>  stop encounter: "
                     + leftPeer.getASAPPeer().getPeerID() + " <--> " + rightPeer.getASAPPeer().getPeerID());
             leftPeer.getASAPTestPeerFS().stopEncounter(rightPeer.getASAPTestPeerFS());
+            Thread.sleep(2000);
         }
     }
 
@@ -430,6 +431,7 @@ public class SharkCreditMoneyComponentTests {
 
         ///////////////////////////////// ASAP specific code - make an encounter Alice Bob
         this.runEncounter(this.claraPeer, this.bobPeer, true);
+        this.runEncounter(this.alicePeer, this.claraPeer, true);
         this.runEncounter(this.alicePeer, this.claraPeer, true);
 
         // The transfer of the bond should now be fulfill

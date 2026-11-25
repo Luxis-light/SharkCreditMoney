@@ -93,10 +93,14 @@ class DummySharkBondReceivedListener implements SharkBondsReceivedListener {
                     this.sharkCreditMoneyComponent.sendBond(this.creditBond, this.creditBond.getCreditorID(), receiver, true, true, SharkCreditMoneyComponent.SHARK_CREDIT_MONEY_SIGNED_TRANSFER_BOND_AS_CREDITOR_URI);
                     break;
                 case SharkCreditMoneyComponent.SHARK_CREDIT_MONEY_SIGNED_TRANSFER_BOND_AS_DEBTOR_URI:
-                    SharkBondHelper.signTransferBondAsCreditor(pkiStore.getASAPKeyStore(), this.creditBond);
+
+                    if (!SharkBondHelper.isSignedAsDebtor(this.creditBond, pkiStore.getASAPKeyStore())) {
+                        throw new SharkCreditMoneyException("Transferred bond is not signed by the new debtor "
+                                + this.creditBond.getDebtorID() + " - rejected.");
+                    }
+                    SharkBondHelper.signAsCreditor(pkiStore.getASAPKeyStore(), this.creditBond, false);
                     receiver = new HashSet<>();
                     receiver.add(this.creditBond.getDebtorID());
-                    receiver.add(this.creditBond.getTempDebtorID());
                     this.sharkCreditMoneyComponent.sendBond(this.creditBond, this.creditBond.getCreditorID(), receiver, true, true, SharkCreditMoneyComponent.SHARK_CREDIT_MONEY_SIGNED_BOND_URI);
                     break;
                 case SharkCreditMoneyComponent.SHARK_CREDIT_MONEY_SIGNED_TRANSFER_BOND_AS_CREDITOR_URI:
